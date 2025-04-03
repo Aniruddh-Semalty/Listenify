@@ -13,30 +13,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id   String  @id @default(uuid())
-  email String
+model User {
+  id       String   @id @default(uuid())
+  email    String
   provider Provider
-  streams Stream[]
-  upvotes Upvote[]
+  streams  Stream[]
+  upvotes  Upvote[]
 }
 
-model Stream{
-  id String @id @default(uuid())
-  type StreamType
-  active Boolean @default(true)
-  userId String
-  user User @relation(fields:[userId],references: [id])
-  upvotes Upvote[]
+model Stream {
+  id          String     @id @default(uuid())
+  type        StreamType
+  url         String
+  extractedId String
+  active      Boolean    @default(true)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  upvotes     Upvote[]
 }
 
-model Upvote{
-  id String @id @default(uuid())
-  userId String
+model Upvote {
+  id       String @id @default(uuid())
+  userId   String
   streamId String
-  user User @relation(fields:[userId],references: [id])
-  stream Stream @relation(fields:[streamId],references: [id])
-  @@unique ([userId,streamId])
+  user     User   @relation(fields: [userId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id])
+
+  @@unique([userId, streamId])
 }
 
 enum StreamType {
@@ -47,4 +50,3 @@ enum StreamType {
 enum Provider {
   Google
 }
-
