@@ -25,14 +25,20 @@ export async function POST(req: NextRequest) {
     );
   }
   try {
+   
     const data = UpvoteSchema.parse(await req.json());
+    
     await prismaClient.upvote.create({
       data: {
         userId: user.id,
-        streamId: data.streamId,
+        streamId: data?.streamId!,
       },
     });
+    return NextResponse.json({
+      "message":"Upvote success",
+    })
   } catch (err) {
+    console.log(err);
     return NextResponse.json({
         message:"Error while upvoting the stream "
     },{
