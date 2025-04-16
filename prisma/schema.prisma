@@ -22,17 +22,27 @@ model User {
 }
 
 model Stream {
-  id                  String     @id @default(uuid())
+  id                  String         @id @default(uuid())
   type                StreamType
   url                 String
   extractedId         String
-  title               String     @default("")
-  smallThumbnailImage String     @default("")
-  largeThumbnailImage String     @default("")
-  active              Boolean    @default(true)
+  title               String         @default("")
+  smallThumbnailImage String         @default("")
+  largeThumbnailImage String         @default("")
+  active              Boolean        @default(true)
   userId              String
-  user                User       @relation(fields: [userId], references: [id])
+  user                User           @relation(fields: [userId], references: [id])
   upvotes             Upvote[]
+  played              Boolean        @default(false)
+  playedTimestamp     DateTime?
+  createdAt           DateTime       @default(now())
+  currentStream       CurrentStream?
+}
+
+model CurrentStream {
+  userId   String  @id
+  streamId String? @unique
+  stream   Stream? @relation(fields: [streamId], references: [id])
 }
 
 model Upvote {
