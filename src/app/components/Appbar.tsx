@@ -5,7 +5,7 @@ export default function Appbar() {
   const session = useSession();
   console.log(session);
   return (
-    <div className="flex justify-between text-white font-bold text-xl p-8 items-center">
+    <div className="flex justify-between text-white font-bold text-xl p-8 items-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
       <div className="flex flex-col justify-center">
       Listenify
       </div>
