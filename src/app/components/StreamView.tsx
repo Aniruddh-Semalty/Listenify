@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Music, ThumbsDown, ThumbsUp, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,8 @@ import { YT_REGEX } from "../lib/utils";
 import LiteYouTubeEmbed from "react-lite-youtube-embed";
 import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
 import { randomUUID } from "crypto";
-import { json } from "stream/consumers";
+
+import YoutubePlayer from "youtube-player";
 const REFRESH_INTERVAL_MS = 10 * 1000;
 
 // Define the Song type
@@ -38,6 +39,7 @@ export default function StreamView({creatorId,playVideo=false}:{creatorId:string
   const [playNextLoading,setPlayNextLoading]=useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
   const { data: session, status } = useSession();
+  const videoPlayerRef=useRef();
 
   async function refreshStreams() {
     const response = await fetch(`/api/streams/?creatorId=${creatorId}`, {
@@ -49,13 +51,41 @@ export default function StreamView({creatorId,playVideo=false}:{creatorId:string
     setQueue((prevState) =>
       [...streamsJson.streams].sort((a, b) => b.upvotes - a.upvotes)
     );
-    setNowPlaying(streamsJson.activeStream.stream);
+    // setNowPlaying(streamsJson.activeStream.stream);
+
+    setNowPlaying(video => {
+      if (video?.id === streamsJson.activeStream.stream.id) {
+          return video;
+      }
+      return streamsJson.activeStream.stream;
+  });
   }
 
   useEffect(() => {
     refreshStreams();
     const intervalId = setInterval(refreshStreams, REFRESH_INTERVAL_MS);
   }, []);
+
+  useEffect(()=>{
+    if(!videoPlayerRef.current)
+    {
+      return;
+    }
+let player=YoutubePlayer(videoPlayerRef.current);
+player.loadVideoById(nowPlaying?.extractedId);
+player.playVideo();
+function eventHandler(event){
+ if(event.data===0)
+ {
+  playNext();
+ }
+}
+player.on("stateChange",eventHandler);
+return  ()=>{
+
+  player.destroy();
+}
+  },[nowPlaying,videoPlayerRef])
 
   // Function to add a song to the queue
   const addToQueue = async () => {
@@ -289,7 +319,8 @@ export default function StreamView({creatorId,playVideo=false}:{creatorId:string
                     <Card className="bg-gradient-to-r from-purple-900/70 to-neutral-900 border-neutral-800">
                       <CardContent className="p-6">
                             { nowPlaying ? 
-                              <iframe width="420" height="315" src={`http://www.youtube.com/embed/${nowPlaying.extractedId}?autoplay=1&cc_load_policy=1`} frameborder="0"> </iframe>
+                            <div ref={videoPlayerRef} className="w-full"></div>
+                              // <iframe width="420" height="315" src={`http://www.youtube.com/embed/${nowPlaying.extractedId}?autoplay=1&cc_load_policy=1`} frameborder="0"> </iframe>
                             :
                             <p>No video playing</p>
                             }
